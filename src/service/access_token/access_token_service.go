@@ -1,6 +1,8 @@
 package access_token
 
 import (
+	"strings"
+
 	"github.com/istomin10593/bookstore_oauth-api/src/domain/access_token"
 	"github.com/istomin10593/bookstore_oauth-api/src/repository/db"
 	"github.com/istomin10593/bookstore_oauth-api/src/utils/errors"
@@ -21,5 +23,16 @@ func NewService(dbRepo db.DbRepository) Service {
 }
 
 func (s *service) GetById(accessTokenId string) (*access_token.AccessToken, *errors.RestErr) {
-	return nil, nil
+	accessTokenId = strings.TrimSpace(accessTokenId)
+
+	if len(accessTokenId) == 0 {
+		return nil, errors.NewBadRequestError("invalid access token id")
+	}
+
+	accessToken, err := s.dbRepo.GetById(accessTokenId)
+	if err != nil {
+		return nil, err
+	}
+
+	return accessToken, nil
 }
