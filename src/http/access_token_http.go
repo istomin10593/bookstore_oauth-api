@@ -22,7 +22,7 @@ func NewAccessTokenHandler(service access_token.Service) AccessTokenHandler {
 }
 
 func (h *accessTokenHandler) GetById(c *gin.Context) {
-	accessToken, err := h.service.GetById(c.Param("access_token_id"))
+	accessToken, err := h.service.GetById(c.Param("access_token"))
 	if err != nil {
 		c.JSON(err.Status, err)
 		return
