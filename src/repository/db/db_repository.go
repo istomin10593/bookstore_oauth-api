@@ -23,6 +23,8 @@ func NewRepository() DbRepository {
 
 type DbRepository interface {
 	GetById(string) (*access_token.AccessToken, *errors.RestErr)
+	Create(access_token.AccessToken) *errors.RestErr
+	UpdateExpirationTime(access_token.AccessToken) *errors.RestErr
 }
 
 type dbRepository struct {
@@ -45,4 +47,28 @@ func (r *dbRepository) GetById(id string) (*access_token.AccessToken, *errors.Re
 	}
 
 	return &result, nil
+}
+
+func (r *dbRepository) Create(at access_token.AccessToken) *errors.RestErr {
+	if saveErr := cassandra.GetSession().Query(queryCreateAccessToken,
+		at.AccessToken,
+		at.UserId,
+		at.ClientId,
+		at.Expires,
+	).Exec(); saveErr != nil {
+		logger.Error("error when trying to save access token", saveErr)
+		return errors.NewInternalServerError("database error")
+	}
+	return nil
+}
+
+func (r *dbRepository) UpdateExpirationTime(at access_token.AccessToken) *errors.RestErr {
+	if err := cassandra.GetSession().Query(queryUpdateExpires,
+		at.Expires,
+		at.AccessToken,
+	).Exec(); err != nil {
+		logger.Error("error when trying to update current resource", err)
+		return errors.NewInternalServerError("database error")
+	}
+	return nil
 }
