@@ -5,13 +5,40 @@ import (
 	"strings"
 	"time"
 
+	"github.com/istomin10593/bookstore_oauth-api/src/logger"
 	"github.com/istomin10593/bookstore_oauth-api/src/utils/crypto_utils"
 	"github.com/istomin10593/bookstore_oauth-api/src/utils/errors"
 )
 
 const (
-	expirationTime = 24
+	expirationTime             = 24
+	grandTypePassword          = "password"
+	grandTypeClientCredentials = "client_credentials"
 )
+
+type AccessTokenRequest struct {
+	GrantType string `json:"grant_type"`
+
+	//Used for password grant type
+	Username string `json:"username"`
+	Password string `json:"unsername"`
+
+	// User for client_credentials grant type
+	ClientId     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
+}
+
+func (at *AccessTokenRequest) Validate() *errors.RestErr {
+	switch at.GrantType {
+	case grandTypePassword:
+		break
+	case grandTypeClientCredentials:
+		break
+	default:
+		return errors.NewBadRequestError("invalid grant_type parameter")
+	}
+	return nil
+}
 
 type AccessToken struct {
 	AccessToken string `json:"access_token"`
@@ -51,7 +78,7 @@ func (at AccessToken) IsExpired() bool {
 func (at *AccessToken) Generate() *errors.RestErr {
 	hash, err := crypto_utils.HashedValue(fmt.Sprintf("at-%d-%d-ran", at.UserId, at.Expires))
 	if err != nil {
-		// logger.Error("error when trying to get hashed value", err)
+		logger.Error("error when trying to get hashed value", err)
 		restErr := errors.NewInternalServerError("database error")
 		return restErr
 	}
