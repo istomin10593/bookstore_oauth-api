@@ -13,6 +13,7 @@ require (
 	github.com/gocql/gocql v1.3.0 // indirect
 	github.com/golang/snappy v0.0.3 // indirect
 	github.com/hailocab/go-hostpool v0.0.0-20160125115350-e80d13ce29ed // indirect
+	github.com/istomin10593/bookstore_utils-go v0.0.0-20221211233941-f942494a37ee // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect

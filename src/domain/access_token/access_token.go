@@ -1,13 +1,14 @@
 package access_token
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/istomin10593/bookstore_oauth-api/src/logger"
 	"github.com/istomin10593/bookstore_oauth-api/src/utils/crypto_utils"
-	"github.com/istomin10593/bookstore_oauth-api/src/utils/errors"
+	"github.com/istomin10593/bookstore_utils-go/rest_errors"
 )
 
 const (
@@ -28,14 +29,14 @@ type AccessTokenRequest struct {
 	ClientSecret string `json:"client_secret"`
 }
 
-func (at *AccessTokenRequest) Validate() *errors.RestErr {
+func (at *AccessTokenRequest) Validate() rest_errors.RestErr {
 	switch at.GrantType {
 	case grandTypePassword:
 		break
 	case grandTypeClientCredentials:
 		break
 	default:
-		return errors.NewBadRequestError("invalid grant_type parameter")
+		return rest_errors.NewBadRequestError("invalid grant_type parameter")
 	}
 	return nil
 }
@@ -47,19 +48,19 @@ type AccessToken struct {
 	Expires     int64  `json:"expires"`
 }
 
-func (at *AccessToken) Validate() *errors.RestErr {
+func (at *AccessToken) Validate() rest_errors.RestErr {
 	at.AccessToken = strings.TrimSpace(at.AccessToken)
 	if at.AccessToken == "" {
-		return errors.NewBadRequestError("invalid access token id")
+		return rest_errors.NewBadRequestError("invalid access token id")
 	}
 	if at.UserId <= 0 {
-		return errors.NewBadRequestError("invalid user id")
+		return rest_errors.NewBadRequestError("invalid user id")
 	}
 	if at.ClientId <= 0 {
-		return errors.NewBadRequestError("invalid client id")
+		return rest_errors.NewBadRequestError("invalid client id")
 	}
 	if at.Expires <= 0 {
-		return errors.NewBadRequestError("invalid expiration time")
+		return rest_errors.NewBadRequestError("invalid expiration time")
 	}
 	return nil
 }
@@ -75,11 +76,11 @@ func (at AccessToken) IsExpired() bool {
 	return time.Unix(at.Expires, 0).Before((time.Now().UTC()))
 }
 
-func (at *AccessToken) Generate() *errors.RestErr {
+func (at *AccessToken) Generate() rest_errors.RestErr {
 	hash, err := crypto_utils.HashedValue(fmt.Sprintf("at-%d-%d-ran", at.UserId, at.Expires))
 	if err != nil {
 		logger.Error("error when trying to get hashed value", err)
-		restErr := errors.NewInternalServerError("database error")
+		restErr := rest_errors.NewInternalServerError("database error", errors.New("database error"))
 		return restErr
 	}
 	at.AccessToken = hash
